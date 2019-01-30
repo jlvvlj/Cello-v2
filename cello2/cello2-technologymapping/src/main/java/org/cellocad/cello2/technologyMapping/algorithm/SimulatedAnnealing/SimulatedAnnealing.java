@@ -43,11 +43,11 @@ import org.cellocad.cello2.results.netlist.NetlistNode;
 import org.cellocad.cello2.results.technologyMapping.TMResultsUtils;
 import org.cellocad.cello2.results.technologyMapping.activity.TMActivityEvaluation;
 import org.cellocad.cello2.results.technologyMapping.activity.signal.SensorSignals;
-import org.cellocad.cello2.results.technologyMapping.cytometry.TMCytometryEvaluation;
 import org.cellocad.cello2.technologyMapping.algorithm.TMAlgorithm;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.SimulatedAnnealingDataUtils;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.SimulatedAnnealingNetlistNodeData;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.assignment.GateManager;
+import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.TMCytometryEvaluation;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.evaluation.Evaluator;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.score.ScoreUtils;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.toxicity.TMToxicityEvaluation;
@@ -375,6 +375,7 @@ public class SimulatedAnnealing extends TMAlgorithm{
 		this.logInfo(this.getTMToxicityEvaluation().toString());
 		//activity
 		TMResultsUtils.writeCSVForTMActivityEvaluation(this.getTMActivityEvaluation(),outputFile + "_activity.csv");
+		this.setTMCytometryEvaluation(new TMCytometryEvaluation(this.getNetlist(),this.getTMActivityEvaluation()));
 		this.logInfo(this.getTMActivityEvaluation().toString());
 		for (int i = 0; i < this.getNetlist().getNumVertex(); i++) {
 			NetlistNode node = this.getNetlist().getVertexAtIdx(i);
@@ -387,10 +388,10 @@ public class SimulatedAnnealing extends TMAlgorithm{
 				str += Utils.getTabCharacter();
 				str += String.format("Gate: %-10s", gate.getName());
 				str += Utils.getTabCharacter();
-				logInfo(str);
+				this.logInfo(str);
 			}
 		}
-		logInfo(String.format("Score: %.2f", ScoreUtils.score(this.getNetlist(),this.getLSLogicEvaluation(),this.getTMActivityEvaluation())));
+		this.logInfo(String.format("Score: %.2f", ScoreUtils.score(this.getNetlist(),this.getLSLogicEvaluation(),this.getTMActivityEvaluation())));
 		// plots
 		logInfo("generating plots");
 		RuntimeEnv runEnv = this.getRuntimeEnv();

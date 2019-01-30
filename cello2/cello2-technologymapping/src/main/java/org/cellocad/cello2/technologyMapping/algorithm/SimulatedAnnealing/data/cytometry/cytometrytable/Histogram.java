@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2017 Massachusetts Institute of Technology (MIT)
+ * Copyright (C) 2018 Boston University (BU)
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -18,101 +18,62 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.ucf;
+package org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.cytometrytable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.cellocad.cello2.common.CObject;
-import org.cellocad.cello2.common.profile.ProfileUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 /**
- * The CytometryData is class representing the cytometry data for a gate in the gate assignment of the <i>SimulatedAnnealing</i> algorithm.
- * 
- * @author Vincent Mirian
- * 
- * @date 2018-05-21
+ * The Histogram class represents a histogram.
+ *
+ * @author Timothy Jones
+ *
+ * @date 2019-01-29
  *
  */
-public class CytometryData extends CObject{
-
-	private void parseMapVariable(final JSONObject JObj){
-		String value = ProfileUtils.getString(JObj, "maps_to_variable");
-		this.setName(value);
-		this.setMapVariable(value);
-	}
+public class Histogram extends CObject{
 	
-	private void parseInput(final JSONObject JObj){
-		Double value = ((Number)JObj.get("input")).doubleValue();
-		this.setInput(value);
-	}
-
-	private void parseOutputBins(final JSONObject JObj){
-		JSONArray JArr = (JSONArray) JObj.get("output_bins");
-		for (int i = 0; i < JArr.size(); i++) {
-			this.getOutputBins().add(((Number)JArr.get(i)).doubleValue());
-		}
-	}
-
-	private void parseOutputCounts(final JSONObject JObj){
-		JSONArray JArr = (JSONArray) JObj.get("output_counts");
-		for (int i = 0; i < JArr.size(); i++) {
-			this.getOutputCounts().add(((Number)JArr.get(i)).doubleValue());
-		}
-	}
-
-	private void parseCytometryData(final JSONObject jObj) {
-		this.parseMapVariable(jObj);
-		this.parseInput(jObj);
-		this.parseOutputBins(jObj);
-		this.parseOutputCounts(jObj);
-    }
-	
+	/**
+	 *  Initialize class members
+	 */
 	private void init() {
-		outputBins = new ArrayList<Double>();
-		outputCounts = new ArrayList<Double>();
+		outputBins = new ArrayList<>();
+		outputCounts = new ArrayList<>();
 	}
 	
-	public CytometryData(final JSONObject jobj) {
-		this.init();
-		this.parseCytometryData(jobj);
+	public Histogram() {
+		init();
 	}
 
-	/*
-	 * MapVariable
-	 */
-	private void setMapVariable(final String mapVariable){
-		this.mapVariable = mapVariable;
+	public Histogram(final List<Double> bins, final List<Double> counts) {
+		outputBins = bins;
+		outputCounts = counts;
 	}
 	
-	public String getMapVariable(){
-		return this.mapVariable;
+	public Double getMean() {
+		Double rtn = null;
+		double sum = 0.0;
+		double num = 0.0;
+		for (int i = 0; i < this.getNumOutputBins(); i++) {
+			double bin = this.getOutputBinsAtIdx(i);
+			double count = this.getOutputCountsAtIdx(i);
+			sum += count;
+			num += bin*count;
+		}
+		rtn = num / sum;
+		return rtn;
 	}
-	
-	private String mapVariable;
-	
-	/*
-	 * input
-	 */
-	private void setInput(final Double input){
-		this.input = input;
-	}
-	
-	public Double getInput(){
-		return this.input;
-	}
-	
-	private Double input;
-	
+
 	/*
 	 * OutputBins
 	 */
 	private List<Double> getOutputBins(){
 		return this.outputBins;
 	}
-	
+
 	public Double getOutputBinsAtIdx(final int index){
 		Double rtn = null;
 		if (
@@ -124,20 +85,20 @@ public class CytometryData extends CObject{
 		}
 		return rtn;
 	}
-	
+
 	public int getNumOutputBins(){
 		return this.getOutputBins().size();
 	}
-	
+
 	private List<Double> outputBins;
-	
+
 	/*
 	 * OutputCounts
 	 */
 	private List<Double> getOutputCounts(){
 		return this.outputCounts;
 	}
-	
+
 	public Double getOutputCountsAtIdx(final int index){
 		Double rtn = null;
 		if (
@@ -149,10 +110,11 @@ public class CytometryData extends CObject{
 		}
 		return rtn;
 	}
-	
+
 	public int getNumOutputCounts(){
 		return this.getOutputCounts().size();
 	}
-	
+
 	private List<Double> outputCounts;
+
 }

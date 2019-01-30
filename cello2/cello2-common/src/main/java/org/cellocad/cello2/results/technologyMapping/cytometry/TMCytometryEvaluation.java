@@ -21,7 +21,7 @@
 package org.cellocad.cello2.results.technologyMapping.cytometry;
 
 /**
- * 
+ * The TMCytometryEvaluation class is class evaluating the cytometry of a netlist in the <i>logicSynthesis</i> stage.
  *
  * @author Timothy Jones
  *
