@@ -35,7 +35,7 @@ import org.cellocad.cello2.common.CObject;
  *
  */
 public class Histogram extends CObject{
-	
+
 	/**
 	 *  Initialize class members
 	 */
@@ -43,7 +43,7 @@ public class Histogram extends CObject{
 		outputBins = new ArrayList<>();
 		outputCounts = new ArrayList<>();
 	}
-	
+
 	public Histogram() {
 		init();
 	}
@@ -52,7 +52,7 @@ public class Histogram extends CObject{
 		outputBins = bins;
 		outputCounts = counts;
 	}
-	
+
 	public Double getMean() {
 		Double rtn = null;
 		double sum = 0.0;
@@ -116,5 +116,25 @@ public class Histogram extends CObject{
 	}
 
 	private List<Double> outputCounts;
+
+	public String getOutputBinsAsString() {
+		String rtn = "";
+		rtn += String.valueOf(this.getOutputBins().get(0));
+		for (int i = 0; i < this.getNumOutputBins()-1; i++) {
+			rtn += ",";
+			rtn += String.valueOf(this.getOutputBins().get(i+1));
+		}
+		return rtn;
+	}
+
+	public String getOutputCountsAsString() {
+		String rtn = "";
+		rtn += String.valueOf(this.getOutputCounts().get(0));
+		for (int i = 0; i < this.getNumOutputCounts()-1; i++) {
+			rtn += ",";
+			rtn += String.valueOf(this.getOutputCounts().get(i+1));
+		}
+		return rtn;
+	}
 
 }

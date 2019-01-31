@@ -42,12 +42,18 @@ import org.cellocad.cello2.results.netlist.Netlist;
 import org.cellocad.cello2.results.netlist.NetlistNode;
 import org.cellocad.cello2.results.technologyMapping.TMResultsUtils;
 import org.cellocad.cello2.results.technologyMapping.activity.TMActivityEvaluation;
+import org.cellocad.cello2.results.technologyMapping.activity.activitytable.Activity;
+import org.cellocad.cello2.results.technologyMapping.activity.activitytable.ActivityTable;
 import org.cellocad.cello2.results.technologyMapping.activity.signal.SensorSignals;
-import org.cellocad.cello2.technologyMapping.algorithm.TMAlgorithm;
+import org.cellocad.cello2.results.technologyMapping.toxicity.TMToxicityEvaluation;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.SimulatedAnnealingDataUtils;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.SimulatedAnnealingNetlistNodeData;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.assignment.GateManager;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.TMCytometryEvaluation;
+import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.TMCytometryEvaluation;
+import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.cytometrytable.Cytometry;
+import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.cytometrytable.CytometryTable;
+import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.cytometrytable.Histogram;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.evaluation.Evaluator;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.score.ScoreUtils;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.toxicity.TMToxicityEvaluation;
@@ -58,8 +64,9 @@ import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.u
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.ucf.Parameter;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.results.ResponsePlots;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.results.SimulatedAnnealingResultsUtils;
+import org.cellocad.cello2.technologyMapping.algorithm.TMAlgorithm;
+import org.cellocad.cello2.technologyMapping.common.TMUtils;
 import org.cellocad.cello2.technologyMapping.runtime.environment.TMArgString;
-import org.json.simple.JSONObject;
 
 /**
  * The SimulatedAnnealing class implements the <i>SimulatedAnnealing</i> algorithm in the <i>technologyMapping</i> stage.
@@ -355,12 +362,65 @@ public class SimulatedAnnealing extends TMAlgorithm{
 		}
 	}
 
+	protected String getCytometryPlotScript(String template) {
+		String rtn = "";
+		TMCytometryEvaluation tmce = this.getTMCytometryEvaluation();
+		rtn += "import matplotlib.pyplot as plt" + Utils.getNewLine();
+		rtn += "import numpy as np" + Utils.getNewLine();
+		rtn += Utils.getNewLine();
+		CObjectCollection<NetlistNode> outputs = LSResultsUtils.getPrimaryOutputNodes(this.getNetlist());
+		for (int i = 0; i < outputs.size(); i++) {
+			NetlistNode node = outputs.get(i).getInEdgeAtIdx(0).getSrc();
+			CytometryTable<NetlistNode,NetlistNode> table = tmce.getCytometryTable(node);
+			Integer num = table.getNumActivities();
+			rtn += "fig, ax = plt.subplots(" + String.valueOf(num) + ", 1, sharex=True, sharey=True)" + Utils.getNewLine();
+			rtn += Utils.getNewLine();
+			for (int j = 0; j < num; j++) {
+				Activity<NetlistNode> activity = table.getActivityAtIdx(j);
+				Cytometry<NetlistNode> cytometry = table.getCytometryOutput(activity);
+				Histogram histogram = cytometry.getCytometry(node);
+				String bins = histogram.getOutputBinsAsString();
+				String counts = histogram.getOutputCountsAsString();
+				rtn += String.format("ax[%d].bar([%s],[%s])",j,bins,counts) + Utils.getNewLine();
+				rtn += String.format("ax[%d].set_xscale('log')",j) + Utils.getNewLine();
+				rtn += String.format("ax[%d].set_yticklabels([])",j) + Utils.getNewLine();
+				rtn += String.format("ax[%d].tick_params(axis='y',which='both',bottom=False,top=False,right=False,left=False,labelleft=False)",j) + Utils.getNewLine();
+			}
+			rtn += Utils.getNewLine();
+			rtn += "plt.subplots_adjust(hspace=0)" + Utils.getNewLine();
+			rtn += Utils.getNewLine();
+			String inputFilename = this.getNetlist().getInputFilename();
+			String filename = Utils.getFilename(inputFilename);
+			String outputDir = this.getRuntimeEnv().getOptionValue(TMArgString.OUTPUTDIR);
+			String outputFile = outputDir + Utils.getFileSeparator() + filename;
+			rtn += String.format("plt.savefig(\"%s.png\",bbox_inches='tight')",outputFile) + Utils.getNewLine();
+		}
+		return rtn;
+	}
+
+	protected void plotTMCytometryEvaluation() {
+		// template
+		String[] pathPrefix = {TMUtils.getResourcesFilepath(),"algorithms","SimulatedAnnealing"};
+		String templateFilename = Utils.getPath(pathPrefix) + Utils.getFileSeparator() + "plot-cytometry.py";
+		// script
+		String outputDir = this.getRuntimeEnv().getOptionValue(TMArgString.OUTPUTDIR);
+		String script = this.getCytometryPlotScript(templateFilename);
+		String filename = outputDir + Utils.getFileSeparator() + "plot-cytometry.py";
+		Utils.writeToFile(script,filename);
+		// exec
+		String cmd = "";
+		cmd += this.getRuntimeEnv().getOptionValue(TMArgString.PYTHONENV);
+		cmd += " ";
+		cmd += filename;
+		Utils.executeAndWaitForCommand(cmd);
+	}
+
 	/**
 	 *  Perform postprocessing
 	 */
 	@Override
 	protected void postprocessing() {
-		updateNetlist(this.getNetlist());
+		this.updateNetlist(this.getNetlist());
 		String inputFilename = this.getNetlist().getInputFilename();
 		String filename = Utils.getFilename(inputFilename);
 		String outputDir = this.getRuntimeEnv().getOptionValue(TMArgString.OUTPUTDIR);
@@ -376,6 +436,7 @@ public class SimulatedAnnealing extends TMAlgorithm{
 		//activity
 		TMResultsUtils.writeCSVForTMActivityEvaluation(this.getTMActivityEvaluation(),outputFile + "_activity.csv");
 		this.setTMCytometryEvaluation(new TMCytometryEvaluation(this.getNetlist(),this.getTMActivityEvaluation()));
+		this.plotTMCytometryEvaluation();
 		this.logInfo(this.getTMActivityEvaluation().toString());
 		for (int i = 0; i < this.getNetlist().getNumVertex(); i++) {
 			NetlistNode node = this.getNetlist().getVertexAtIdx(i);

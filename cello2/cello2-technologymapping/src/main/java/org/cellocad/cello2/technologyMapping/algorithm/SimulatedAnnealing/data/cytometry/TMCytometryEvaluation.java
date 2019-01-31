@@ -124,7 +124,7 @@ public class TMCytometryEvaluation extends CObject{
 		ResponseFunction rf = gate.getResponseFunction();
 		ResponseFunctionVariable var = rf.getVariableAtIdx(0);
 		CytometryData a = var.getCytometryDataAtIdx(0);
-		CytometryData b = var.getCytometryDataAtIdx(1);
+		CytometryData b = var.getCytometryDataAtIdx(var.getNumCytometryData() - 1);
 		for (int i = 0; i < var.getNumCytometryData(); i++) {
 			CytometryData cd = var.getCytometryDataAtIdx(i);
 			cd.getInput();
@@ -166,10 +166,14 @@ public class TMCytometryEvaluation extends CObject{
 			Pair<CytometryData,CytometryData> pair = this.getAdjacentCytometryData(node,input);
 			Histogram a = this.getHistogram(pair.getFirst());
 			Histogram b = this.getHistogram(pair.getSecond());
-			HistogramInterpolator interp = new HistogramInterpolator(a,b);
-			histogram = interp.interpolate((input - pair.getFirst().getInput())
-			                               /
-			                               (pair.getSecond().getInput() - pair.getFirst().getInput()));
+			if (pair.getFirst().equals(pair.getSecond())) {
+				histogram = a;
+			}
+			else {
+				HistogramInterpolator interp = new HistogramInterpolator(a,b);
+				Double r = (input - pair.getFirst().getInput()) / (pair.getSecond().getInput() - pair.getFirst().getInput());
+				histogram = interp.interpolate(r);
+			}
 			outputCytometry.setCytometry(node, histogram);
 		}
 	}

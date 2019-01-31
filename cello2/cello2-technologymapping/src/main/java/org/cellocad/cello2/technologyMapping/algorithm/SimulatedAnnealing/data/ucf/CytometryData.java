@@ -30,9 +30,9 @@ import org.json.simple.JSONObject;
 
 /**
  * The CytometryData is class representing the cytometry data for a gate in the gate assignment of the <i>SimulatedAnnealing</i> algorithm.
- * 
+ *
  * @author Vincent Mirian
- * 
+ *
  * @date 2018-05-21
  *
  */
@@ -43,7 +43,7 @@ public class CytometryData extends CObject{
 		this.setName(value);
 		this.setMapVariable(value);
 	}
-	
+
 	private void parseInput(final JSONObject JObj){
 		Double value = ((Number)JObj.get("input")).doubleValue();
 		this.setInput(value);
@@ -68,13 +68,13 @@ public class CytometryData extends CObject{
 		this.parseInput(jObj);
 		this.parseOutputBins(jObj);
 		this.parseOutputCounts(jObj);
-    }
-	
+	}
+
 	private void init() {
 		outputBins = new ArrayList<Double>();
 		outputCounts = new ArrayList<Double>();
 	}
-	
+
 	public CytometryData(final JSONObject jobj) {
 		this.init();
 		this.parseCytometryData(jobj);
@@ -86,33 +86,33 @@ public class CytometryData extends CObject{
 	private void setMapVariable(final String mapVariable){
 		this.mapVariable = mapVariable;
 	}
-	
+
 	public String getMapVariable(){
 		return this.mapVariable;
 	}
-	
+
 	private String mapVariable;
-	
+
 	/*
 	 * input
 	 */
 	private void setInput(final Double input){
 		this.input = input;
 	}
-	
+
 	public Double getInput(){
 		return this.input;
 	}
-	
+
 	private Double input;
-	
+
 	/*
 	 * OutputBins
 	 */
 	private List<Double> getOutputBins(){
 		return this.outputBins;
 	}
-	
+
 	public Double getOutputBinsAtIdx(final int index){
 		Double rtn = null;
 		if (
@@ -124,20 +124,20 @@ public class CytometryData extends CObject{
 		}
 		return rtn;
 	}
-	
+
 	public int getNumOutputBins(){
 		return this.getOutputBins().size();
 	}
-	
+
 	private List<Double> outputBins;
-	
+
 	/*
 	 * OutputCounts
 	 */
 	private List<Double> getOutputCounts(){
 		return this.outputCounts;
 	}
-	
+
 	public Double getOutputCountsAtIdx(final int index){
 		Double rtn = null;
 		if (
@@ -149,10 +149,52 @@ public class CytometryData extends CObject{
 		}
 		return rtn;
 	}
-	
+
 	public int getNumOutputCounts(){
 		return this.getOutputCounts().size();
 	}
-	
+
 	private List<Double> outputCounts;
+
+	/*
+	 * Equals
+	 */
+	/**
+	 *  Indicates whether some other object is "equal to" this one.
+	 *
+	 *  @param obj the object to compare with.
+	 *  @return true if this object is the same as the obj argument; false otherwise.
+	 */
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CytometryData other = (CytometryData) obj;
+		if (mapVariable == null) {
+			if (other.mapVariable != null)
+				return false;
+		} else if (!mapVariable.equals(other.mapVariable))
+			return false;
+		if (input == null) {
+			if (other.input != null)
+				return false;
+		} else if (!input.equals(other.input))
+			return false;
+		if (outputBins == null) {
+			if (other.outputBins != null)
+				return false;
+		} else if (!outputBins.equals(other.outputBins))
+			return false;
+		if (outputCounts == null) {
+			if (other.outputCounts != null)
+				return false;
+		} else if (!outputCounts.equals(other.outputCounts))
+			return false;
+		return true;
+	}
+
 }
