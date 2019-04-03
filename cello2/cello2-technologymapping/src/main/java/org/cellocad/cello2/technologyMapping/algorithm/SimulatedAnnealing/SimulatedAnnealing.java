@@ -43,13 +43,10 @@ import org.cellocad.cello2.results.netlist.NetlistNode;
 import org.cellocad.cello2.results.technologyMapping.TMResultsUtils;
 import org.cellocad.cello2.results.technologyMapping.activity.TMActivityEvaluation;
 import org.cellocad.cello2.results.technologyMapping.activity.activitytable.Activity;
-import org.cellocad.cello2.results.technologyMapping.activity.activitytable.ActivityTable;
 import org.cellocad.cello2.results.technologyMapping.activity.signal.SensorSignals;
-import org.cellocad.cello2.results.technologyMapping.toxicity.TMToxicityEvaluation;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.SimulatedAnnealingDataUtils;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.SimulatedAnnealingNetlistNodeData;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.assignment.GateManager;
-import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.TMCytometryEvaluation;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.TMCytometryEvaluation;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.cytometrytable.Cytometry;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.cytometry.cytometrytable.CytometryTable;
@@ -65,8 +62,8 @@ import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.data.u
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.results.ResponsePlots;
 import org.cellocad.cello2.technologyMapping.algorithm.SimulatedAnnealing.results.SimulatedAnnealingResultsUtils;
 import org.cellocad.cello2.technologyMapping.algorithm.TMAlgorithm;
-import org.cellocad.cello2.technologyMapping.common.TMUtils;
 import org.cellocad.cello2.technologyMapping.runtime.environment.TMArgString;
+import org.json.simple.JSONObject;
 
 /**
  * The SimulatedAnnealing class implements the <i>SimulatedAnnealing</i> algorithm in the <i>technologyMapping</i> stage.
@@ -362,7 +359,7 @@ public class SimulatedAnnealing extends TMAlgorithm{
 		}
 	}
 
-	protected String getCytometryPlotScript(String template) {
+	protected String getCytometryPlotScript() {
 		String rtn = "";
 		TMCytometryEvaluation tmce = this.getTMCytometryEvaluation();
 		rtn += "import matplotlib.pyplot as plt" + Utils.getNewLine();
@@ -399,12 +396,9 @@ public class SimulatedAnnealing extends TMAlgorithm{
 	}
 
 	protected void plotTMCytometryEvaluation() {
-		// template
-		String[] pathPrefix = {TMUtils.getResourcesFilepath(),"algorithms","SimulatedAnnealing"};
-		String templateFilename = Utils.getPath(pathPrefix) + Utils.getFileSeparator() + "plot-cytometry.py";
 		// script
 		String outputDir = this.getRuntimeEnv().getOptionValue(TMArgString.OUTPUTDIR);
-		String script = this.getCytometryPlotScript(templateFilename);
+		String script = this.getCytometryPlotScript();
 		String filename = outputDir + Utils.getFileSeparator() + "plot-cytometry.py";
 		Utils.writeToFile(script,filename);
 		// exec
@@ -428,7 +422,7 @@ public class SimulatedAnnealing extends TMAlgorithm{
 		// logic
 		LSResultsUtils.writeCSVForLSLogicEvaluation(this.getLSLogicEvaluation(),outputFile + "_logic.csv");
 		// cytometry
-		this.setTMCytometryEvaluation(new TMCytometryEvaluation());
+		this.setTMCytometryEvaluation(new TMCytometryEvaluation(this.getNetlist(),this.getTMActivityEvaluation()));
 		//toxicity
 		this.setTMToxicityEvaluation(new TMToxicityEvaluation(this.getNetlist(),this.getTMActivityEvaluation()));
 		SimulatedAnnealingResultsUtils.writeCSVForTMToxicityEvaluation(this.getTMToxicityEvaluation(),outputFile + "_toxicity.csv");
