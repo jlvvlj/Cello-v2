@@ -1,0 +1,6 @@
+logicSynthesis.Gates,"NOR"
+technologyMapping,SimulatedAnnealing
+partitioning,GPCC_SUGARM_BASE
+placing.MaxPlacements,1
+export.AddInteractions,false
+export.RepositoryUrl,https://synbiohub.programmingbiology.org
