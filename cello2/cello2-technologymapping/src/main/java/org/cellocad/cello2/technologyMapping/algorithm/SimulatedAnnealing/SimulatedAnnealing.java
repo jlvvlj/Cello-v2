@@ -378,8 +378,8 @@ public class SimulatedAnnealing extends TMAlgorithm{
 				Histogram histogram = cytometry.getCytometry(node);
 				String bins = histogram.getOutputBinsAsString();
 				String counts = histogram.getOutputCountsAsString();
-				rtn += String.format("ax[%d].bar([%s],[%s])",j,bins,counts) + Utils.getNewLine();
-				rtn += String.format("ax[%d].set_xscale('log')",j) + Utils.getNewLine();
+				rtn += String.format("ax[%d].semilogx([%s],[%s])",j,bins,counts) + Utils.getNewLine();
+				//rtn += String.format("ax[%d].set_xscale('log')",j) + Utils.getNewLine();
 				rtn += String.format("ax[%d].set_yticklabels([])",j) + Utils.getNewLine();
 				rtn += String.format("ax[%d].tick_params(axis='y',which='both',bottom=False,top=False,right=False,left=False,labelleft=False)",j) + Utils.getNewLine();
 			}
